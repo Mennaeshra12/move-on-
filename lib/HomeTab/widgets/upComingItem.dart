@@ -74,13 +74,18 @@ class _UpcomingitemState extends State<Upcomingitem> {
               onTap: (){
                // Navigator.pushNamed(context, WatchListTab.routeName);
               },
-              child: Image.asset(
-                _isFavorite
-                    ? 'assets/images/Icon awesome-bookmark.png'
-                    // Selected state image
-                    : 'assets/images/bookmark.png', // Unselected state image
-                width: 30.w, // Set the width of the icon image
-                height: 40.h, // Set the height of the icon image
+              child: InkWell(
+                onTap: (){
+                  Navigator.of(context).pushNamed(WatchListTab.routeName);
+                },
+                child: Image.asset(
+                  _isFavorite
+                      ? 'assets/images/Icon awesome-bookmark.png'
+                      // Selected state image
+                      : 'assets/images/bookmark.png', // Unselected state image
+                  width: 30.w, // Set the width of the icon image
+                  height: 40.h, // Set the height of the icon image
+                ),
               ),
             ),
           ),
