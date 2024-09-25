@@ -1,15 +1,15 @@
 import 'dart:async';
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:movies_watchlist/firebase_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Data/Response/topRatedOrPopularResponse.dart';
 
 class MovieList extends StatefulWidget {
   final List<MovieModel> movieList; // List of movies
-  MovieList({Key? key, required this.movieList}) : super(key: key);
+  const MovieList({super.key, required this.movieList});
 
   @override
   State<MovieList> createState() => _MovieListState();
@@ -24,7 +24,7 @@ class _MovieListState extends State<MovieList> {
     _movies = widget.movieList; // Initialize with the provided list
 
     // Set a timer to update the movie list every second
-    Timer.periodic(Duration(seconds: 2), (Timer timer) {
+    Timer.periodic(const Duration(seconds: 2), (Timer timer) {
       setState(() {
         _movies.shuffle();
       });
@@ -44,7 +44,7 @@ class _MovieListState extends State<MovieList> {
         height: 300.h,
         enlargeCenterPage: true,
         autoPlay: true,
-        autoPlayInterval: Duration(seconds: 2),
+        autoPlayInterval: const Duration(seconds: 2),
         viewportFraction: 0.8,
         aspectRatio: 16 / 9,
         initialPage: 0,
@@ -55,7 +55,7 @@ class _MovieListState extends State<MovieList> {
 
 class MovieCard extends StatefulWidget {
   final MovieModel? moviecard;
-  MovieCard({Key? key, required this.moviecard}) : super(key: key);
+  const MovieCard({super.key, required this.moviecard});
 
   @override
   State<MovieCard> createState() => _MovieCardState();
@@ -88,7 +88,7 @@ class _MovieCardState extends State<MovieCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 275.h,
       child: Stack(
@@ -132,7 +132,7 @@ class _MovieCardState extends State<MovieCard> {
                   child: Container(
                     width: 50.w,
                     height: 50.h,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                     ),
                     child: Image.asset(
@@ -162,9 +162,9 @@ class _MovieCardState extends State<MovieCard> {
                   Text(
                     widget.moviecard?.title ?? 'Unknown Title',
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
@@ -173,8 +173,8 @@ class _MovieCardState extends State<MovieCard> {
                   Text(
                     '${widget.moviecard?.releaseDate ?? ''} • PG-13 • 2h 7m',
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Colors.white70,
-                        ),
+                      color: Colors.white70,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -187,7 +187,7 @@ class _MovieCardState extends State<MovieCard> {
             bottom: 0.h,
             left: 10.w,
             child: Container(
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               height: 140.h,
               width: 100.w,
               decoration: BoxDecoration(
@@ -204,20 +204,30 @@ class _MovieCardState extends State<MovieCard> {
           Positioned(
             left: 15.w,
             top: 105.h,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isFavorite = !_isFavorite; // Toggle state
-                  _saveIconState(); // Save state
-                });
-              },
-              child: Image.asset(
+            child: IconButton(
+              icon: Image.asset(
                 _isFavorite
                     ? 'assets/images/Icon awesome-bookmark.png'
                     : 'assets/images/bookmark.png',
                 width: 30.w,
                 height: 40.h,
               ),
+              onPressed: () async {
+                _isFavorite = !_isFavorite; // Toggle state
+                _saveIconState(); // Save state
+                if (_isFavorite) {
+                  await Firestore.addMovieToFirestore(
+                    context,
+                    widget.moviecard!.title ?? '',
+                    'https://image.tmdb.org/t/p/w500${widget.moviecard!.posterPath}' ??
+                        '',
+                    widget.moviecard!.releaseDate ?? "",
+                  );
+                } else {
+                  await Firestore.removeMovieByTitle(
+                      widget.moviecard!.title ?? '');
+                }
+              },
             ),
           ),
         ],
