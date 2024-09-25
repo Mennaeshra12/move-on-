@@ -8,7 +8,7 @@ import '../Data/Response/topRatedOrPopularResponse.dart';
 
 class TopRatedSection extends StatefulWidget {
   final String? name;
-  final List<topRatedOrPopular> topRatedList; // Ensure proper class name
+  final List<MovieModel> topRatedList; // Ensure proper class name
 
   TopRatedSection({required this.topRatedList, required this.name});
 

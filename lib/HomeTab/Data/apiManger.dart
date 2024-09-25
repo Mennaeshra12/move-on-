@@ -78,4 +78,9 @@ class ApiManager {
       throw e;
     }
   }
+
+
+  static String getMovieReleaseYear(String data) {
+    return data.split('-')[0];
+  }
 }

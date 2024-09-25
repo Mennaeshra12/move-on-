@@ -8,8 +8,8 @@ import 'homeTabStates.dart';
 
 class Hometabviewmodel extends Cubit<homeTabStates> {
   Hometabviewmodel() : super(HomeTabInitialState());
-  List<topRatedOrPopular>? popularList;
-  List<topRatedOrPopular>? topRatedList;
+  List<MovieModel>? popularList;
+  List<MovieModel>? topRatedList;
   List<upComing>? upComingList;
   void getAllTopRated() async {
     try {

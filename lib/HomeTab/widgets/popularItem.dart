@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Data/Response/topRatedOrPopularResponse.dart';
 
 class popularitem extends StatefulWidget {
-  final topRatedOrPopular? moviecard;
+  final MovieModel? moviecard;
   popularitem({Key? key, required this.moviecard}) : super(key: key);
 
   @override

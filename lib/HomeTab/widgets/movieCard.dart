@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Data/Response/topRatedOrPopularResponse.dart';
 
 class MovieList extends StatefulWidget {
-  final List<topRatedOrPopular> movieList; // List of movies
+  final List<MovieModel> movieList; // List of movies
   MovieList({Key? key, required this.movieList}) : super(key: key);
 
   @override
@@ -16,7 +16,7 @@ class MovieList extends StatefulWidget {
 }
 
 class _MovieListState extends State<MovieList> {
-  List<topRatedOrPopular> _movies = [];
+  List<MovieModel> _movies = [];
 
   @override
   void initState() {
@@ -54,7 +54,7 @@ class _MovieListState extends State<MovieList> {
 }
 
 class MovieCard extends StatefulWidget {
-  final topRatedOrPopular? moviecard;
+  final MovieModel? moviecard;
   MovieCard({Key? key, required this.moviecard}) : super(key: key);
 
   @override

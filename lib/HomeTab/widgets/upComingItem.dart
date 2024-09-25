@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:movies_watchlist/WatchList/Widgets/watchListTab.dart';
+import 'package:movies_watchlist/WatchList/watchListTab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Data/Response/upComingResponse.dart'; // Import your upcoming data model here

@@ -14,14 +14,14 @@ class TopRatedOrPopularResponse {
     if (json['results'] != null) {
       results = [];
       json['results'].forEach((v) {
-        results?.add(topRatedOrPopular.fromJson(v));
+        results?.add(MovieModel.fromJson(v));
       });
     }
     totalPages = json['total_pages'];
     totalResults = json['total_results'];
   }
   num? page;
-  List<topRatedOrPopular>? results;
+  List<MovieModel>? results;
   num? totalPages;
   num? totalResults;
   String? message;
@@ -39,8 +39,8 @@ class TopRatedOrPopularResponse {
   }
 }
 
-class topRatedOrPopular {
-  topRatedOrPopular({
+class MovieModel {
+  MovieModel({
     this.adult,
     this.backdropPath,
     this.genreIds,
@@ -55,9 +55,10 @@ class topRatedOrPopular {
     this.video,
     this.voteAverage,
     this.voteCount,
+    this.isFavorite = false,
   });
 
-  topRatedOrPopular.fromJson(dynamic json) {
+  MovieModel.fromJson(dynamic json) {
     adult = json['adult'];
     backdropPath = json['backdrop_path'];
     genreIds = json['genre_ids'] != null ? json['genre_ids'].cast<num>() : [];
@@ -75,7 +76,7 @@ class topRatedOrPopular {
   }
   bool? adult;
   String? backdropPath;
-  List<num>? genreIds;
+  List<dynamic>? genreIds;
   num? id;
   String? originalLanguage;
   String? originalTitle;
@@ -87,9 +88,11 @@ class topRatedOrPopular {
   bool? video;
   num? voteAverage;
   num? voteCount;
+  bool? isFavorite;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
+    map['is_favorite']= isFavorite;
     map['adult'] = adult;
     map['backdrop_path'] = backdropPath;
     map['genre_ids'] = genreIds;
@@ -104,6 +107,7 @@ class topRatedOrPopular {
     map['video'] = video;
     map['vote_average'] = voteAverage;
     map['vote_count'] = voteCount;
+
     return map;
   }
 }

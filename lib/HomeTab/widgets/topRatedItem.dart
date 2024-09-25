@@ -6,7 +6,7 @@ import '../../AppColors.dart';
 import '../Data/Response/topRatedOrPopularResponse.dart';
 
 class TopRatedItem extends StatefulWidget {
-  final topRatedOrPopular? topratedorpopular;
+  final MovieModel? topratedorpopular;
   const TopRatedItem({Key? key, required this.topratedorpopular})
       : super(key: key);
 
