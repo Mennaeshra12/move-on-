@@ -1,84 +1,133 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:movies_watchlist/HomeTab/Data/Response/topRatedOrPopularResponse.dart';
-import 'package:movies_watchlist/dialog_utils.dart';
 
-class FirebaseUtils {
-  // get movies collection reference
-  static CollectionReference<MovieModel> getMoviesCollection() {
-    return FirebaseFirestore.instance
-        .collection("watch_list")
-        .withConverter<MovieModel>(
-        fromFirestore: (snapshot, _) => MovieModel.fromJson(snapshot.data()!),
-        toFirestore: (movie, _) => movie.toJson());
-  }
-
-  // add movie object to firestore
-  static Future addMovieToFirestore(MovieModel movie, BuildContext context) async {
-    DialogUtils.showLoading(context, "Adding to watch list.....");
-    await Future.delayed(const Duration(seconds: 2));
+class Firestore {
+  static Future<void> removeAllMovies() async {
+    // Reference to Firestore collection 'FavMovie'
+    CollectionReference movies =
+    FirebaseFirestore.instance.collection('FavMovie');
 
     try {
-      CollectionReference<MovieModel> movieCollection = getMoviesCollection();
-      DocumentReference<MovieModel> docRef = movieCollection.doc("${movie.id}");
-      docRef.set(movie);
+      // Get all documents in the 'FavMovie' collection
+      QuerySnapshot querySnapshot = await movies.get();
 
-      DialogUtils.hideLoading(context);
+      // Loop through each document and delete it
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        await doc.reference.delete();
+      }
 
-      DialogUtils.showMessage(
-          context: context,
-          content: "Movie added to watch List.",
-          title: "Success",
-          posActionName: "ok");
+      print('All movies deleted successfully');
     } catch (e) {
-      DialogUtils.hideLoading(context);
-
-      DialogUtils.showMessage(
-          context: context,
-          content: e.toString(),
-          title: "Error",
-          negActionName: "ok");
+      print('Failed to delete all movies: $e');
     }
   }
 
-  // delete movie object from firestore
-  static Future<void> deleteMovieFromFirebase(
-      MovieModel movie, BuildContext context) async {
-    DialogUtils.showLoading(context, "Removing from watch list....");
-    await Future.delayed(const Duration(seconds: 2));
+  static Future<void> removeMovieByTitle(String title) async {
+    // Reference to Firestore collection 'FavMovie'
+    CollectionReference movies =
+    FirebaseFirestore.instance.collection('FavMovie');
 
     try {
-      DialogUtils.hideLoading(context);
+      // Query the 'FavMovie' collection for documents where the 'title' matches
+      QuerySnapshot querySnapshot =
+      await movies.where('title', isEqualTo: title).get();
 
-      getMoviesCollection().doc("${movie.id}").delete();
+      // Loop through the documents and delete each one
+      for (QueryDocumentSnapshot doc in querySnapshot.docs) {
+        await doc.reference.delete();
+        print('Movie with title "$title" deleted successfully');
+      }
 
-      DialogUtils.showMessage(
-          context: context,
-          content: "Movie deleted from watch List.",
-          title: "Success",
-          posActionName: "ok");
+      if (querySnapshot.docs.isEmpty) {
+        print('No movie found with the title "$title"');
+      }
     } catch (e) {
-      DialogUtils.hideLoading(context);
-
-      DialogUtils.showMessage(
-          context: context,
-          content: e.toString(),
-          title: "Error",
-          posActionName: "ok");
+      print('Failed to remove movie: $e');
     }
   }
-  static Stream<QuerySnapshot<MovieModel>> getRealTimeDataFromFirestore() {
-    var snapshot = getMoviesCollection().snapshots();
-    return snapshot;
+
+  static Future<void> addMovieToFirestore(BuildContext context, String title,
+      String imagePath, String releaseDate) async {
+    // Reference to Firestore collection 'FavMovie'
+    CollectionReference movies =
+    FirebaseFirestore.instance.collection('FavMovie');
+
+    // Data to be added
+    Map<String, dynamic> movieData = {
+      'title': title,
+      'imagePath': imagePath,
+      'releaseDate': releaseDate,
+      'timestamp': FieldValue
+          .serverTimestamp(), // Optional: to track when the movie was added
+    };
+
+    try {
+      // Add movie details to Firestore
+      await movies.add(movieData);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(seconds: 3),
+        content: Text('Movie added to Firestore'),
+        action: SnackBarAction(label: "close", onPressed: () {}),
+      ));
+
+      print('Movie added to Firestore');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        duration: Duration(seconds: 3),
+        content: Text('Failed to add movie: $e'),
+        action: SnackBarAction(label: "close", onPressed: () {}),
+      ));
+      print('Failed to add movie: $e');
+    }
   }
 
-  static Stream<QuerySnapshot<MovieModel>> readMovieFromFirestore() {
-    var querySnapshot = getMoviesCollection().snapshots();
-    return querySnapshot;
+  static Future<bool> isMovieInWatchlist(String title) async {
+    try {
+      // Log the title being searched
+      print('Checking for movie with title: $title');
+
+      // Query Firestore to find a movie by title
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('FavMovie')
+          .where('title', isEqualTo: title) // Search by title (case-sensitive)
+          .limit(1) // Limit to 1 result for efficiency
+          .get();
+
+      // Log the result for debugging
+      print('Documents found: ${querySnapshot.docs.length}');
+      print(querySnapshot.docs.isNotEmpty);
+      // If the query returns documents, the movie is in the watchlist
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      // Log any errors that occur
+      print('Error occurred while checking for movie: $e');
+      return false; // Return false in case of an error
+    }
   }
 
-  static Future<bool> existMovieInFirestore(MovieModel movie) async {
-    var querySnapshot = await getMoviesCollection().doc("${movie.id}").get();
-    return querySnapshot.exists;
+  static Future<List<Map<String, dynamic>>> getFavMovies() async {
+    // Reference to Firestore collection 'FavMovie'
+    CollectionReference movies =
+    FirebaseFirestore.instance.collection('FavMovie');
+
+    try {
+      // Get all documents from the 'FavMovie' collection
+      QuerySnapshot querySnapshot = await movies.get();
+
+      // Map each document to a list of movie data
+      List<Map<String, dynamic>> favMovies = querySnapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'title': doc['title'],
+          'imagePath': doc['imagePath'],
+          'releaseDate': doc['releaseDate'],
+        };
+      }).toList();
+
+      return favMovies;
+    } catch (e) {
+      print('Failed to get movies: $e');
+      return [];
+    }
   }
 }

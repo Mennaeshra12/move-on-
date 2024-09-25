@@ -1,86 +1,105 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:movies_watchlist/AppColors.dart';
-import 'package:movies_watchlist/HomeTab/Data/Response/topRatedOrPopularResponse.dart';
-import 'package:movies_watchlist/WatchList/Widgets/wishlist_movie_item.dart';
 import 'package:movies_watchlist/firebase_utils.dart';
-import 'package:movies_watchlist/homeScreen/home_screen.dart';
 
-class WatchListTab extends StatelessWidget {
-  static const String routeName = "watch_list";
+class WatchListTab extends StatefulWidget {
+  static const String routeName = 'watchlisttab';
 
   @override
+  State<WatchListTab> createState() => _WatchListTabState();
+}
+
+class _WatchListTabState extends State<WatchListTab> {
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.backgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 70, left: 15, right: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Watch List',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                color: AppColors.whiteColorText,
-                fontWeight: FontWeight.w400,
-                fontSize: 22,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot<MovieModel>>(
-                stream: FirebaseUtils.getRealTimeDataFromFirestore(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(snapshot.error.toString()),
-                      ],
-                    );
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  var moviesList = snapshot.data?.docs
-                      .map((element) => element.data())
-                      .toList() ??
-                      [];
-                  print('MoviesList: ${moviesList.length}');
-                  return (moviesList.isEmpty)
-                      ? Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Image.asset('assets/images/search_body.png'),
-                      const SizedBox(height: 5),
-                      const Text(
-                        "No Movies Found",
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: AppColors.greySearchBarColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  )
-                      : ListView.builder(
-                    itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, HomeScreen.routeName,
-                              arguments: moviesList[index]);
-                        },
-                        child: WatchlistMovieItem(model: moviesList[index])),
-                    itemCount: moviesList.length,
-                    padding: EdgeInsets.zero,
-                  );
-                },
-              ),
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Text(
+          'WatshList',
+          style: TextStyle(color: Colors.white),
         ),
+      ),
+      backgroundColor: Colors.black,
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: Firestore.getFavMovies(), // Call the getFavMovies function
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text(
+                'No favorite movies found',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
+
+          // Data is available
+          final favMovies = snapshot.data!;
+          return ListView.builder(
+            itemCount: favMovies.length,
+            itemBuilder: (context, index) {
+              final movie = favMovies[index];
+              return _buildWatchlistItem(movie);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildWatchlistItem(Map<String, dynamic> movie) {
+    return Container(
+      color: Colors.black,
+      margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Container(
+            padding: EdgeInsets.only(right: 15),
+            width: 100,
+            height: 130,
+            child: Image.network(
+              movie['imagePath'] ?? '',
+              filterQuality: FilterQuality.high,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey,
+                  child: Center(child: Text('Image not available')),
+                );
+              },
+            ),
+          ),
+          Container(
+            width: 200,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  movie['title'] ?? 'Unknown',
+                  style: TextStyle(color: Colors.white),
+                ),
+                Text(
+                  movie['releaseDate'] ?? 'releaseDate unknown',
+                  style: TextStyle(color: Colors.white),
+                )
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () async {
+              await Firestore.removeMovieByTitle(movie['title']);
+              setState(() {});
+            },
+            icon: Icon(
+              Icons.bookmark_added_outlined,
+              color: Colors.blue,
+            ),
+          ),
+        ],
       ),
     );
   }

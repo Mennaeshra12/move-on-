@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:movies_watchlist/AppColors.dart';
 import 'package:movies_watchlist/HomeTab/Data/Response/topRatedOrPopularResponse.dart';
@@ -8,7 +9,7 @@ import 'package:movies_watchlist/firebase_utils.dart';
 class WatchlistMovieItem extends StatelessWidget {
   final MovieModel model;
 
-  WatchlistMovieItem({required this.model});
+  const WatchlistMovieItem({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +34,7 @@ class WatchlistMovieItem extends StatelessWidget {
                   ),
                   child: GestureDetector(
                     onTap: () {
-                      FirebaseUtils.deleteMovieFromFirebase(model, context);
+                      Firestore.removeMovieByTitle(model.title ?? '');
                     },
                     child: Image.asset(
                       (model.isFavorite!)
@@ -64,8 +65,7 @@ class WatchlistMovieItem extends StatelessWidget {
                       ),
                       Text(
                         'Year: ${ApiManager.getMovieReleaseYear(model.releaseDate ?? '')}',
-                        style: const TextStyle(
-                            color: AppColors.whiteColorText),
+                        style: const TextStyle(color: AppColors.whiteColorText),
                       ),
                       Row(
                         children: [
